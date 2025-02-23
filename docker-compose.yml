@@ -1,0 +1,91 @@
+version: '1'
+
+
+services:
+  wordpress:
+    container-name: frontend-network
+    image: wordpress:latest
+    ports:
+      - "80:443"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: admin_wp
+      WORDPRESS_DB_PASSWORD: admin_wp
+    depends_on:
+      - db
+      - phpmyadmin
+    restart: always
+    networks:
+      backend_network:
+        ipv4_address: 192.168.10.10
+      frontend_network:
+        ipv4_address: 192.168.20.10
+      hostname: frontend-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://google.com"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
+
+
+  db:
+    container-name: backend-network
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: admin_wp
+      MYSQL_PASSWORD: admin_wp
+    restart: always
+    networks:
+      backend_network:
+        ipv4_address: 192.168.10.10
+      frontend_network:
+        ipv4_address: 192.168.20.10
+      hostname: backend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://google.com"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
+      
+  phpmyadmin:
+    container-name: frontend-network
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 80:80
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      backend_network:
+        ipv4_address: 192.168.10.10
+      frontend_network:
+        ipv4_address: 192.168.20.10
+      hostname: frontend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://google.com"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
+    
+
+  networks:
+    backend_network:
+        ipam:
+            config:
+              - subnet: 192.168.10.0/24
+    red_interna:
+        ipam:
+            config:
+              - subnet: 192.168.20.0/24
