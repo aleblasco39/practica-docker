@@ -7,11 +7,8 @@ services:
     image: wordpress:latest
     ports:
       - "80:443"
-    environment:
-      WORDPRESS_DB_HOST: mysql
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: admin_wp
-      WORDPRESS_DB_PASSWORD: admin_wp
+    env_file:
+      - .env
     depends_on:
       - db
       - phpmyadmin
@@ -35,18 +32,15 @@ services:
   db:
     container-name: backend-network
     image: mysql:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: admin_wp
-      MYSQL_PASSWORD: admin_wp
+    env_file:
+      - .env
     restart: always
     networks:
       backend_network:
         ipv4_address: 192.168.10.10
       frontend_network:
         ipv4_address: 192.168.20.10
-      hostname: backend-network
+      hostname: backend-network/database
     healthcheck:
       test: ["CMD", "curl", "-f", "http://google.com"]
       interval: 1m30s
@@ -57,27 +51,29 @@ services:
       
   phpmyadmin:
     container-name: frontend-network
-    image: phpmyadmin
+    image: phpmyadmin:latest
+    env_file:
+      - .env
     restart: always
     depends_on:
       - db
     ports:
       - 80:80
-    environment:
-      - PMA_ARBITRARY=1
+    
+    
     networks:
       backend_network:
         ipv4_address: 192.168.10.10
       frontend_network:
         ipv4_address: 192.168.20.10
-      hostname: frontend-network
+      hostname: frontend-network/phpmyadmin
     healthcheck:
       test: ["CMD", "curl", "-f", "http://google.com"]
       interval: 1m30s
       timeout: 10s
       retries: 3
       start_period: 40s
-      start_interval: 5s
+      start_interval: 5sQ
     
 
   networks:
